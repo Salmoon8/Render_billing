@@ -71,8 +71,21 @@ def handleinvoice(request,id):
                  services.append(service)
             invoice.services_ids=services
             invoice.save()
-            response=get_invoice_by_id(invoice.id)
-            return JsonResponse(response)
+            # response=get_invoice_by_id(invoice.id)
+            names,amounts=get_services_data(services_ids)
+            patient_id=get_patient_from_appointment(invoice.appointment_id)
+            insurance_percentage=get_insurance_percentage(patient_id)
+            amounts_after_insurace=[(1-float(insurance_percentage))* amount for amount in amounts]
+            response ={
+               'id': invoice.id,
+               'status':invoice.status,
+               'datetime':invoice.datetime,
+               'Services_names':names,
+               'Services_amounts':amounts, # data base schema ?
+               'amounts_total':amounts_after_insurace
+          }
+            return JsonResponse(response,safe=False)
+            #return JsonResponse(response)
     
     elif request.method=="GET":
         invoice = get_object_or_404(Invoice, id=id)
@@ -98,9 +111,8 @@ def newinvoice(request) :
           data=json.loads(request.body.decode("utf-8"))
           new_invoice=Invoice(appointment_id=data['appointment_id'],status="DR",datetime=timezone.now().isoformat(),services_ids=data['services_ids'])
           new_invoice.save()
-          #response=get_invoice_by_id(new_invoice.id)
-          #return JsonResponse(response ,safe=False)
-          return redirect(f'https://render-billing.onrender.com/invoices/{Invoice.id}')
+          response=get_invoice_by_id(new_invoice.id)
+          return JsonResponse(response ,safe=False)
     
 @csrf_exempt
 @require_http_methods(["GET"])
