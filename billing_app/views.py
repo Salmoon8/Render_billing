@@ -1,4 +1,4 @@
-from django.shortcuts import render , get_object_or_404
+from django.shortcuts import render , get_object_or_404 ,redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
@@ -98,8 +98,9 @@ def newinvoice(request) :
           data=json.loads(request.body.decode("utf-8"))
           new_invoice=Invoice(appointment_id=data['appointment_id'],status="DR",datetime=timezone.now().isoformat(),services_ids=data['services_ids'])
           new_invoice.save()
-          response=get_invoice_by_id(new_invoice.id)
-          return JsonResponse(response ,safe=False)
+          #response=get_invoice_by_id(new_invoice.id)
+          #return JsonResponse(response ,safe=False)
+          return redirect(f'https://render-billing.onrender.com/invoices/{Invoice.id}')
     
 @csrf_exempt
 @require_http_methods(["GET"])
