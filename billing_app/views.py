@@ -40,9 +40,13 @@ def get_insurance_percentage(patient_id):
 
 def get_invoice_by_id(id):
             url = f'https://render-billing.onrender.com/invoices/{id}' #       
-            response=requests.get(url)
-            return response.json()
-        
+            try:
+                    response = requests.get(url)
+                    response.raise_for_status()  # Raise an error for bad responses (4xx, 5xx)
+                    return response.json()
+            except Exception as e:
+                    return {'error': str(e)}
+                    
 
 
     
