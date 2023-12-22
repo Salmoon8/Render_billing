@@ -13,7 +13,7 @@ class Invoice(models.Model):
         cancelled = 'CN', _('Cancelled')
 
     status = models.CharField(max_length=2, choices=Status.choices, default=Status.draft)
-    datetime = models.DateTimeField()
+    dateTime = models.DateTimeField()
     services_ids = ArrayField(models.IntegerField())
     def __str__(self):
          return f'{self.id} {self.status} {self.services_ids}'

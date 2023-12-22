@@ -84,7 +84,7 @@ def handleinvoice(request,id):
         response ={
             'id': invoice.id,
             'status':invoice.status,
-            'datetime':invoice.datetime,
+            'datetime':invoice.dateTime,
             'Services_names':names,
             'Services_amounts':amounts, # data base schema ?
             'amounts_total':amounts_after_insurace
@@ -96,7 +96,7 @@ def handleinvoice(request,id):
 def newinvoice(request) :
      if request.method == 'POST':
           data=json.loads(request.body.decode("utf-8"))
-          new_invoice=Invoice(appointment_id=data['appointment_id'],status="DR",datetime=timezone.now().isoformat(),services_ids=data['services_ids'])
+          new_invoice=Invoice(appointment_id=data['appointment_id'],status="DR",dateTime=timezone.now().isoformat(),services_ids=data['services_ids'])
           new_invoice.save()
           response=get_invoice_by_id(new_invoice.id)
           return JsonResponse(response ,safe=False)
