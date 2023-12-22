@@ -12,18 +12,14 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
-import dj_database_url
-
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-print("BASE ISSSSS", BASE_DIR)
+ENV_BASE_DIR = Path(__file__).resolve().parent.parent
 import environ
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, False)
 )
 # Take environment variables from .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+environ.Env.read_env(os.path.join(ENV_BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -33,7 +29,8 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS=os.environ.get("ALLOWED_HOSTS").split(" ")
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
 
 # Application definition
 
@@ -45,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'billing_app',
-     'django.contrib.postgres',
+    'django.contrib.postgres',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -58,12 +56,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+
 ROOT_URLCONF = 'billing.urls'
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR,"client/build")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -82,21 +82,15 @@ WSGI_APPLICATION = 'billing.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": env("DB_NAME"),
-#         "USER": env("DB_USER"),
-#         "PASSWORD": env("DB_PASSWORD"),
-#         "HOST": "127.0.0.1",
-#         "PORT": "",
-#     }
-# }
-
 DATABASES = {
-    'default': dj_database_url.config(
-        default=env("db_url")
-    )
+    'default': {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": "127.0.0.1",
+        "PORT": "",
+    }
 }
 
 # Password validation

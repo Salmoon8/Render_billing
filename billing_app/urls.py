@@ -1,9 +1,14 @@
-from django.urls import path
+from django.urls import path , include
 from . import views
 
 urlpatterns = [
+    # invoice endpoints
+    path('invoice', views.new_invoice, name='new_invoice'),
+    path('invoice/<int:id>', views.handle_invoice, name='handle_invoice'),
+    path('invoice/patient/<int:patient_id>', views.get_all_patient_invoices, name='get_all_patient_invoices'),
 
-    path('invoices', views.newinvoice, name='newinv'),
-    path('invoices/<int:id>', views.handleinvoice, name='handle'),
-    path('invoices/patient_id/<int:patient_id>', views.get_all_patient_invoices, name='all_patients_inv'),
+    # bill endpoints
+     path('bill', views.new_bill, name="new_bill"),
+    path('bill/<int:id>', views.handle_bill, name='handle_bill'),
+    path('bill/patient/<int:patient_id>', views.get_all_patient_bills, name='get_all_patient_bills'),
                  ]
