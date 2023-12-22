@@ -43,7 +43,7 @@ def get_insurance_percentage(patient_id):
      return insurance
 
 def get_invoice_by_id(id):
-            url = f'http://127.0.0.1:8000/invoice/{id}'
+            url = f'https://billing-2.onrender.com/invoice/{id}'
             response=requests.get(url)
             return response.json()
         
