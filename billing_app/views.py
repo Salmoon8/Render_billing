@@ -163,7 +163,7 @@ def get_all_patient_bills(_, patient_id):
     bills = Bill.objects.filter(invoiceId__patientId = patient_id)
     bills = BillSerializer(bills, many=True).data
     if len(bills)==0:
-         return JsonResponse({"message":"bills not found"},status=200)
+         return JsonResponse({"message":"bills not found"},status=404)
     return JsonResponse(bills, status=200, safe=False)
 
 
