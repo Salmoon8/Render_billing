@@ -15,32 +15,81 @@ env=environ.Env()
 
 def get_services_data(services_ids):
      ### replace with logic for admin api call
-     api_url = 'https://dwl9v.wiremockapi.cloud/services'
-     services_data={"services_ids":services_ids}
-     headers={"auth":env("auth_data")}
-     response=requests.get(api_url,data=json.dumps(services_data),headers=headers)
-     services_response=response.json()
-     services_names=services_response["services_names"]
-     services_amounts=services_response["services_amounts"]
-     return services_names,services_amounts
+     # only use 5 for testing because there are no other services currently
+     Admin_services_url=f'https://admin-service-healu.onrender.com/api/v1/clinicService/'
+     services_names=[]
+     services_amounts=[]
+     for id in services_ids:
+          response=requests.get(f'{Admin_services_url}{id}')
+          if response.status_code== 200:
+            service_data=json.loads(response.text)
+            service_name=service_data['data']['clinicService']["name"]
+            service_amount=service_data['data']['clinicService']["price"]
+            print(service_name,service_amount,response.status_code)
+            services_names.append(service_name)
+            services_amounts.append(service_amount)
+            services_response={
+                 "status code": response.status_code,
+                 "services_names":services_names,
+                 "services_amounts":services_amounts
+            }
+          else : ### handle 404 and other cases
+                services_response={
+                 "status code": response.status_code,
+                 "error": response.text
+                     }
+        
+     return services_response
 
 def get_patient_from_appointment(appointment_id):
      ### appointment api logic
-     api_url = f'https://dwl9v.wiremockapi.cloud/appointment/:{appointment_id}'
-     headers={"auth":env("auth_data")}
-     response=requests.get(api_url,headers=headers)
-     appointment_response=response.json()
-     patient_id=appointment_response["patient_id"]
-     return patient_id
+     print("entered appointment")
+     api_url = f'https://appointment-service-y30u.onrender.com/appointments/{appointment_id}'
+     response=requests.get(api_url)
+     # API appointment returns NULL with status code 200 for deleted appointments
+     if (response is None):
+        patient_response= {
+             "status code": "none",
+             "error": "api returned a null patient"
+        }
+         
+     elif response.status_code== 200:
+        appointment_response=json.loads(response.text)
+        print(appointment_response)
+        patient_id=appointment_response["patientId"]
+        patient_response= {
+             "status code": response.status_code,
+             "patient_id": patient_id
+        }
+        print("if condition 1")
+     else:
+        patient_response= {
+             "status code": response.status_code,
+             "error": response.text
+        }
+     print(patient_response, 1)   
+     return patient_response
 
 def get_insurance_percentage(patient_id):
-     # change appointment to reg api
-     api_url = f'https://dwl9v.wiremockapi.cloud/registeration/:{patient_id}'
-     headers={"auth":env("auth_data")}
-     response=requests.get(api_url,headers=headers)
-     registration_response=response.json()
-     insurance=registration_response["insurance"]
-     return insurance
+     registeration_url=f'https://registrationservices.onrender.com/patient/'
+     response=requests.get(f'{registeration_url}{patient_id}')
+     print(response)
+     if response.status_code ==200:
+         response=json.loads(response.text)
+         print(response["data"]['insurancePersentage'])
+         insurance=response["data"]['insurancePersentage']
+         print(insurance)
+         insurace_response={
+             "status code": response.status_code,
+             "insurance": insurance   
+         }
+     else: 
+        insurace_response={
+             "status code": response.status_code,
+             "error": response.text   
+         }
+          
+     return insurace_response
 
 def get_invoice_by_id(id):
             url = f'https://billing-2.onrender.com/invoice/{id}'
@@ -54,66 +103,119 @@ def get_invoice_by_id(id):
 @csrf_exempt
 @require_http_methods(["DELETE","PATCH","GET"])
 def handle_invoice(request,id):
-    try:
-        invoice = get_object_or_404(Invoice, id=id)
-    except Http404:
-         return JsonResponse({"message":"invoice not found"}, status=404)
-    
     if request.method=="DELETE":
-
-        invoice.delete()
-        return JsonResponse({"message":"invoice deleted successfully"},status=200)
+        try:
+            invoice = get_object_or_404(Invoice, id=id)
+            invoice.delete()
+            response= { 
+                "message":"invoice deleted successfully"
+                    }
+            return JsonResponse(response)
+        except :
+            response= { 
+                "message":"invoice not found"
+                    }
+            return JsonResponse(response,status=404)
+    
     
     elif request.method=="PATCH":
+            try: 
+                invoice = get_object_or_404(Invoice, id=id)
+            except:
+                response= { 
+                "message":"invoice not found"
+                    }
+                return JsonResponse(response,status=404)
             new_services=json.loads(request.body)["servicesIds"]
             services=invoice.servicesIds
+            # list append
             for service in new_services:
-                 services.append(service)
+                services.append(service)
             invoice.servicesIds=services
             invoice.save()
             response=get_invoice_by_id(invoice.id)
-            return JsonResponse(response, status=200)
-    
+            return JsonResponse(response)
+                 
+        
     elif request.method=="GET":
+        try:
+            invoice = get_object_or_404(Invoice, id=id)
+        except:
+            response= { 
+                "message":"invoice not found"
+                    }
+            return JsonResponse(response,status=404)
         services_ids=invoice.servicesIds
-        services_names,services_amounts=get_services_data(services_ids)
-        insurance_percentage=get_insurance_percentage(invoice.patientId)
-        amounts_after_insurace=[(1-float(insurance_percentage))* amount for amount in services_amounts]
-        serializer=InvoiceSerializer(invoice)
-        invoice_response = serializer.data
-        invoice_details={
-              'servicesNames':services_names,
-               'servicesAmounts':services_amounts,     
-              'totalAmounts': amounts_after_insurace
+        services_response=get_services_data(services_ids)
+        insurace_response=get_insurance_percentage(invoice.patientId)
+        if (services_response["status code"]==200 and insurace_response["status code"]==200 ):
+            services_names=services_response["services_names"]
+            services_amounts=services_response["services_amounts"]
+            insurance_percentage=insurace_response["insurance"]
+            amounts_after_insurace=[(1-float(insurance_percentage))* amount for amount in services_amounts]
+            serializer=InvoiceSerializer(invoice)
+            invoice_response = serializer.data
+            invoice_details={
+                'servicesNames':services_names,
+                'servicesAmounts':services_amounts,     
+                'totalAmounts': amounts_after_insurace
 
-        }
-        invoice_response.update(invoice_details)
-        return JsonResponse(invoice_response,safe=False)
-    
+            }
+            invoice_response.update(invoice_details)
+            return JsonResponse(invoice_response,safe=False)
+        else:
+            API_responses={
+                 "services_API":services_response,
+                 "insurance_API":insurace_response
+            }
+            response={
+                "message":"an error occured during an external API call",
+                "details":API_responses
+            }
+            return JsonResponse(response,safe=False,status=404)
+        
 @csrf_exempt
 @require_http_methods(["POST"])
 def new_invoice(request) :
      if request.method == 'POST':
           data=json.loads(request.body.decode("utf-8"))
-          patient_id=get_patient_from_appointment(data['appointmentId'])
-          new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
-          new_invoice.save()
-          response=get_invoice_by_id(new_invoice.id)
-          return JsonResponse(response ,safe=False)
-    
+          patient_response=get_patient_from_appointment(data['appointmentId'])
+          print(patient_response)
+          if(patient_response["status code"]==200):
+            patient_id=patient_response["patient_id"]
+            new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
+            new_invoice.save()
+            response=get_invoice_by_id(new_invoice.id)
+            return JsonResponse(response ,safe=False)
+          else:
+            reponse={
+                "message": "could not get patient",
+                "patient_API":patient_response
+                }
+            return JsonResponse(reponse,status=404)
+
+              
+        
 @csrf_exempt
 @require_http_methods(["GET"])
-def get_all_patient_invoices(_,patient_id):
+def get_all_patient_invoices(requests,patient_id):
      filtered_invoices = Invoice.objects.filter(patientId=patient_id)
-     invoices = InvoiceSerializer(filtered_invoices,many=True).data
+     serializer = InvoiceSerializer(filtered_invoices,many=True) 
+     return JsonResponse(serializer.data,safe=False)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_all_invoices(requests):
+     invoices = Invoice.objects.all()
+     serializer = InvoiceSerializer(invoices,many=True) 
      if len(invoices)==0:
-        return JsonResponse({"message":"invoices not found"},status=404)
-     return JsonResponse(invoices, safe=False)
+         return JsonResponse({"message":" no invoices found"},status=404) 
+     return JsonResponse(serializer.data,safe=False)
+    
+
     
           
-
-
-
 @csrf_exempt
 def new_bill(request):
     if request.method == 'POST':
@@ -165,6 +267,16 @@ def get_all_patient_bills(_, patient_id):
     if len(bills)==0:
          return JsonResponse({"message":"bills not found"},status=404)
     return JsonResponse(bills, status=200, safe=False)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_all_bills(requests):
+     bills = Bill.objects.all()
+     serializer = BillSerializer(bills,many=True)
+     if len(bills)==0:
+         return JsonResponse({"message":" no bills found"},status=404) 
+     return JsonResponse(serializer.data,safe=False)
+    
 
 
 
