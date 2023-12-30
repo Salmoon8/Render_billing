@@ -190,7 +190,9 @@ def new_invoice(request) :
           print(data)
           patient_response=get_patient_from_appointment(data['appointmentId'])
           services_response=get_services_data(data['servicesIds'])
-          print(patient_response,services_response)
+          print("got patient and service")
+          print(patient_response)
+          print(services_response)
           if(patient_response["status code"]==200 and services_response["status code"]==200 )  :
             patient_id=patient_response["patient_id"]
             new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
