@@ -48,10 +48,10 @@ def get_patient_from_appointment(appointment_id):
      response=requests.get(api_url)
      # API appointment returns NULL with status code 200 for deleted appointments
      if (response is None):
-        patient_response= {
-             "status code": "none",
-             "error": "api returned a null patient"
-        }
+            patient_response= {
+                "status code": "none",
+                "error": "api returned a null patient"
+            }
          
      elif response.status_code== 200:
         appointment_response=json.loads(response.text)
@@ -186,10 +186,11 @@ def handle_invoice(request,id):
 def new_invoice(request) :
      if request.method == 'POST':
           data=json.loads(request.body.decode("utf-8"))
+          print(data)
           patient_response=get_patient_from_appointment(data['appointmentId'])
           services_response=get_services_data(data['servicesIds'])
           print(patient_response)
-          if(patient_response["status code"]==200) and services_response["status code"]==200   :
+          if(patient_response["status code"]==200 and services_response["status code"]==200 )  :
             patient_id=patient_response["patient_id"]
             new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
             new_invoice.save()
