@@ -191,8 +191,19 @@ def handle_invoice(request,id):
 @require_http_methods(["POST"])
 def new_invoice(request) :
      if request.method == 'POST':
-          data=json.loads(request.body.decode("utf-8"))
-          print(data)
+          try:
+            data=json.loads(request.body.decode("utf-8"))
+            print(data['appointmentId'],data['servicesIds'])
+            # Assertion to check if the variable is a string
+            assert isinstance(data['appointmentId'], str), "The variable is not a string."
+
+            # If the assertion fails, the code after this line will not be executed
+            print("The variable is a string.")
+          except:
+              response={
+                  "message": "an error occured during parsing the request body, refer to the docs for the correct body"
+              }
+              return JsonResponse(response,status=500)
           patient_response=get_patient_from_appointment(data['appointmentId'])
           services_response=get_services_data(data['servicesIds'])
           print("got patient and service")
@@ -216,7 +227,7 @@ def new_invoice(request) :
         
 @csrf_exempt
 @require_http_methods(["GET"])
-def get_all_patient_invoices(requests,patient_id):
+def get_all_patient_invoices(request,patient_id):
      filtered_invoices = Invoice.objects.filter(patientId=patient_id)
      serializer = InvoiceSerializer(filtered_invoices,many=True) 
      return JsonResponse(serializer.data,safe=False)
@@ -224,7 +235,7 @@ def get_all_patient_invoices(requests,patient_id):
 
 @csrf_exempt
 @require_http_methods(["GET"])
-def get_all_invoices(requests):
+def get_all_invoices(request):
      invoices = Invoice.objects.all()
      serializer = InvoiceSerializer(invoices,many=True) 
      if len(invoices)==0:
@@ -290,7 +301,7 @@ def get_all_patient_bills(_, patient_id):
 
 @csrf_exempt
 @require_http_methods(["GET"])
-def get_all_bills(requests):
+def get_all_bills(request):
      bills = Bill.objects.all()
      serializer = BillSerializer(bills,many=True)
      if len(bills)==0:
