@@ -127,15 +127,24 @@ def handle_invoice(request,id):
                     }
                 return JsonResponse(response,status=404)
             new_services=json.loads(request.body)["servicesIds"]
-            services=invoice.servicesIds
-            # list append
-            for service in new_services:
-                services.append(service)
-            invoice.servicesIds=services
-            invoice.save()
-            response=get_invoice_by_id(invoice.id)
-            return JsonResponse(response)
-                 
+            services_response=get_services_data(new_services)
+            if (services_response["status code"]==200 ):
+                services=invoice.servicesIds
+                # list append
+                for service in new_services:
+                    services.append(service)
+                invoice.servicesIds=services
+                invoice.status-"PN"
+                invoice.save()
+                response=get_invoice_by_id(invoice.id)
+                return JsonResponse(response)
+            else:
+                response={
+                    "message": "an error occured in calling services API",
+                    "services API": services_response
+                }
+                return JsonResponse(response,safe=False,status=404)
+                    
         
     elif request.method=="GET":
         try:
@@ -180,8 +189,9 @@ def new_invoice(request) :
      if request.method == 'POST':
           data=json.loads(request.body.decode("utf-8"))
           patient_response=get_patient_from_appointment(data['appointmentId'])
+          services_response=get_services_data(data['servicesIds'])
           print(patient_response)
-          if(patient_response["status code"]==200):
+          if(patient_response["status code"]==200) and services_response["status code"]==200   :
             patient_id=patient_response["patient_id"]
             new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
             new_invoice.save()
@@ -189,8 +199,9 @@ def new_invoice(request) :
             return JsonResponse(response ,safe=False)
           else:
             reponse={
-                "message": "could not get patient",
-                "patient_API":patient_response
+                "message": "an error occured during an external API call",
+                "patient_API":patient_response ,
+                "services_API": services_response
                 }
             return JsonResponse(reponse,status=404)
 
@@ -231,6 +242,8 @@ def new_bill(request):
             if response.status_code == 201:
                 bill = Bill(invoiceId = invoice, amount=body["amount"], paymentMethod = "ON", dateTime = timezone.now().isoformat())
                 bill.save()
+                invoice.status="PD"
+                invoice.save()
                 response = BillSerializer(bill).data
                 return JsonResponse(response, status=201, safe=False)
             else:
