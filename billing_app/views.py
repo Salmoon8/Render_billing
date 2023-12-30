@@ -54,7 +54,7 @@ def get_patient_from_appointment(appointment_id):
                 "error": "api returned a null patient"
             }
          
-     elif response.status_code== 200:
+     elif (response.status_code)== 200:
         appointment_response=json.loads(response.text)
         print(appointment_response)
         patient_id=appointment_response["patientId"]
@@ -190,7 +190,7 @@ def new_invoice(request) :
           print(data)
           patient_response=get_patient_from_appointment(data['appointmentId'])
           services_response=get_services_data(data['servicesIds'])
-          print(patient_response)
+          print(patient_response,services_response)
           if(patient_response["status code"]==200 and services_response["status code"]==200 )  :
             patient_id=patient_response["patient_id"]
             new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
