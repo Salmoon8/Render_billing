@@ -94,7 +94,7 @@ def get_insurance_percentage(patient_id):
 def get_invoice_by_id(id):
             url = f'https://billing-2.onrender.com/invoice/{id}'
             response=requests.get(url)
-            return response.json()
+            return response
         
 
 
@@ -137,7 +137,7 @@ def handle_invoice(request,id):
                 invoice.status-"PN"
                 invoice.save()
                 response=get_invoice_by_id(invoice.id)
-                return JsonResponse(response)
+                return JsonResponse(response.json(),status=response.status_code,safe=False)
             else:
                 response={
                     "message": "an error occured in calling services API",
@@ -196,7 +196,7 @@ def new_invoice(request) :
             new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
             new_invoice.save()
             response=get_invoice_by_id(new_invoice.id)
-            return JsonResponse(response ,safe=False)
+            return JsonResponse(response.json() ,safe=False,status=response.status_code)
           else:
             reponse={
                 "message": "an error occured during an external API call",
