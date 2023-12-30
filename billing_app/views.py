@@ -51,21 +51,23 @@ def get_patient_from_appointment(appointment_id):
      response=requests.get(api_url)
      print(response,response.status_code)
      # API appointment returns NULL with status code 200 for deleted appointments
-     if (response is None):
+
+         
+     if (response.status_code)== 200:
+        if (response is None):
             patient_response= {
                 "status code": "none",
                 "error": "api returned a null patient"
             }
-         
-     elif (response.status_code)== 200:
-        appointment_response=json.loads(response.text)
-        print(appointment_response)
-        patient_id=appointment_response["patientId"]
-        patient_response= {
-             "status code": response.status_code,
-             "patient_id": patient_id
-        }
-        print("if condition 1")
+        else:    
+            appointment_response=json.loads(response.text)
+            print(appointment_response)
+            patient_id=appointment_response["patientId"]
+            patient_response= {
+                "status code": response.status_code,
+                "patient_id": patient_id
+            }
+            print("if condition 1")
      else:
         patient_response= {
              "status code": response.status_code,
