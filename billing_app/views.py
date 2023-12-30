@@ -71,7 +71,7 @@ def get_patient_from_appointment(appointment_id):
      return patient_response
 
 def get_insurance_percentage(patient_id):
-     registeration_url=f'https://registrationservices.onrender.com/patient/'
+     registeration_url=f'https://registration-zf9n.onrender.com/'
      response=requests.get(f'{registeration_url}{patient_id}')
      print(response)
      if response.status_code ==200:
