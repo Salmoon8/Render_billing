@@ -46,6 +46,7 @@ def get_patient_from_appointment(appointment_id):
      print("entered appointment")
      api_url = f'https://appointment-service-y30u.onrender.com/appointments/{appointment_id}'
      response=requests.get(api_url)
+     print(response,response.status_code)
      # API appointment returns NULL with status code 200 for deleted appointments
      if (response is None):
             patient_response= {
