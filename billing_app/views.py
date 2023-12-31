@@ -105,7 +105,7 @@ def get_invoice_by_id(id):
     
 
 @csrf_exempt
-@require_http_methods(["DELETE","PATCH","GET"])
+@require_http_methods(["DELETE","GET"])
 def handle_invoice(request,id):
     if request.method=="DELETE":
         try:
@@ -120,35 +120,6 @@ def handle_invoice(request,id):
                 "message":"invoice not found"
                     }
             return JsonResponse(response,status=404)
-    
-    
-    elif request.method=="PATCH":
-            try: 
-                invoice = get_object_or_404(Invoice, id=id)
-            except:
-                response= { 
-                "message":"invoice not found"
-                    }
-                return JsonResponse(response,status=404)
-            new_services=json.loads(request.body)["servicesIds"]
-            services_response=get_services_data(new_services)
-            if (services_response["status code"]==200 ):
-                services=invoice.servicesIds
-                # list append
-                for service in new_services:
-                    services.append(service)
-                invoice.servicesIds=services
-                invoice.status="PN"
-                invoice.save()
-                response=get_invoice_by_id(invoice.id)
-                return JsonResponse(response.json(),status=response.status_code,safe=False)
-            else:
-                response={
-                    "message": "an error occured in calling services API",
-                    "services API": services_response
-                }
-                return JsonResponse(response,safe=False,status=404)
-                    
         
     elif request.method=="GET":
         try:
@@ -158,35 +129,9 @@ def handle_invoice(request,id):
                 "message":"invoice not found"
                     }
             return JsonResponse(response,status=404)
-        services_ids=invoice.servicesIds
-        services_response=get_services_data(services_ids)
-        insurace_response=get_insurance_percentage(invoice.patientId)
-        if (services_response["status code"]==200 and insurace_response["status code"]==200 ):
-            services_names=services_response["services_names"]
-            services_amounts=services_response["services_amounts"]
-            insurance_percentage=insurace_response["insurance"]
-            amounts_after_insurace=[(1-float(insurance_percentage))* amount for amount in services_amounts]
-            serializer=InvoiceSerializer(invoice)
-            invoice_response = serializer.data
-            invoice_details={
-                'servicesNames':services_names,
-                'servicesAmounts':services_amounts,     
-                'totalAmounts': amounts_after_insurace
-
-            }
-            invoice_response.update(invoice_details)
-            return JsonResponse(invoice_response,safe=False)
-        else:
-            API_responses={
-                 "services_API":services_response,
-                 "insurance_API":insurace_response
-            }
-            response={
-                "message":"an error occured during an external API call",
-                "details":API_responses
-            }
-            return JsonResponse(response,safe=False,status=404)
-        
+        response=InvoiceSerializer(new_invoice)
+        return JsonResponse(response.data,safe=False)
+          
 @csrf_exempt
 @require_http_methods(["POST"])
 def new_invoice(request) :
@@ -211,17 +156,32 @@ def new_invoice(request) :
           print(services_response)
           if(patient_response["status code"]==200 and services_response["status code"]==200 )  :
             patient_id=patient_response["patient_id"]
-            new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'])
-            new_invoice.save()
-            response=get_invoice_by_id(new_invoice.id)
-            return JsonResponse(response.json() ,safe=False,status=response.status_code)
-          else:
-            reponse={
-                "message": "an error occured during an external API call",
-                "patient_API":patient_response ,
-                "services_API": services_response
+            insurace_response=get_insurance_percentage(patient_id)
+            if (insurace_response["status code"]==200 ):
+                services_names=services_response["services_names"]
+                services_amounts=services_response["services_amounts"]
+                insurance_percentage=insurace_response["insurance"]
+                amounts_after_insurace=[(1-float(insurance_percentage))* amount for amount in services_amounts]
+                new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'],servicesNames=services_names,servicesAmounts=services_amounts,amountsAfterInsurance=amounts_after_insurace)
+                new_invoice.save()
+                #response=get_invoice_by_id(new_invoice.id)
+                response=InvoiceSerializer(new_invoice)
+                return JsonResponse(response.data,safe=False)
+            else:
+                reponse={
+                "message": "an error occured during insurance API call",
+                "insurance API": insurace_response
+
                 }
             return JsonResponse(reponse,status=404)
+
+          else:
+            response={
+                "message": "an error occured during an external API call",
+                "patient_API":patient_response ,
+                "services_API": services_response,
+                }
+            return JsonResponse(response,status=404)
 
               
         
@@ -256,7 +216,7 @@ def new_bill(request):
 
         if body["paymentMethod"]=="card":
             paymentSource = body["paymentSource"]["card"]       
-            response = utils.pay_with_card(amount= body["amount"], card_number=paymentSource["number"],expiry=paymentSource["expiry"],cvv=paymentSource["cvv"],name=paymentSource["name"])
+            response = utils.pay_with_card(amount= invoice.total, card_number=paymentSource["number"],expiry=paymentSource["expiry"],cvv=paymentSource["cvv"],name=paymentSource["name"])
             if response.status_code == 201:
                 bill = Bill(invoiceId = invoice, amount=body["amount"], paymentMethod = "ON", dateTime = timezone.now().isoformat())
                 bill.save()
