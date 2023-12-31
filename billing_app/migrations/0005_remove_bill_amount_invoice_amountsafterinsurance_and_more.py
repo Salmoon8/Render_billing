@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             model_name="invoice",
             name="amountsAfterInsurance",
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.FloatField(), default=0, size=None
+                base_field=models.FloatField(), default=[float(0)], size=None
             ),
             preserve_default=False,
         ),
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             model_name="invoice",
             name="servicesAmounts",
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.FloatField(), default=0, size=None
+                base_field=models.FloatField(), default=[float(0)], size=None
             ),
             preserve_default=False,
         ),
@@ -34,14 +34,14 @@ class Migration(migrations.Migration):
             model_name="invoice",
             name="servicesNames",
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.CharField(), default=0, size=None
+                base_field=models.CharField(), default="NA", size=None
             ),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name="invoice",
             name="total",
-            field=models.FloatField(default=0),
+            field=models.FloatField(default=float(0)),
             preserve_default=False,
         ),
         migrations.AlterField(
