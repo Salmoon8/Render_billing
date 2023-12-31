@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             model_name="invoice",
             name="servicesNames",
             field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.CharField(), default="NA", size=None
+                base_field=models.CharField(), default=["NA"], size=None
             ),
             preserve_default=False,
         ),
