@@ -162,7 +162,7 @@ def new_invoice(request) :
                 services_amounts=services_response["services_amounts"]
                 insurance_percentage=insurace_response["insurance"]
                 amounts_after_insurace=[(1-float(insurance_percentage))* amount for amount in services_amounts]
-                new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'],servicesNames=services_names,servicesAmounts=services_amounts,amountsAfterInsurance=amounts_after_insurace)
+                new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'],servicesNames=services_names,servicesAmounts=services_amounts,amountsAfterInsurance=amounts_after_insurace,total=sum(amounts_after_insurace))
                 new_invoice.save()
                 #response=get_invoice_by_id(new_invoice.id)
                 response=InvoiceSerializer(new_invoice)
