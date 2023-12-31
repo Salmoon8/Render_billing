@@ -138,7 +138,7 @@ def handle_invoice(request,id):
                 for service in new_services:
                     services.append(service)
                 invoice.servicesIds=services
-                invoice.status-"PN"
+                invoice.status="PN"
                 invoice.save()
                 response=get_invoice_by_id(invoice.id)
                 return JsonResponse(response.json(),status=response.status_code,safe=False)
