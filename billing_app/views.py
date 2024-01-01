@@ -218,7 +218,7 @@ def new_bill(request):
             paymentSource = body["paymentSource"]["card"]       
             response = utils.pay_with_card(amount= invoice.total, card_number=paymentSource["number"],expiry=paymentSource["expiry"],cvv=paymentSource["cvv"],name=paymentSource["name"])
             if response.status_code == 201:
-                bill = Bill(invoiceId = invoice, amount=body["amount"], paymentMethod = "ON", dateTime = timezone.now().isoformat())
+                bill = Bill(invoiceId = invoice,  paymentMethod = "ON", dateTime = timezone.now().isoformat())
                 bill.save()
                 invoice.status="PD"
                 invoice.save()
