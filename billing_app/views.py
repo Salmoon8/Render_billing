@@ -130,7 +130,7 @@ def handle_invoice(request,id):
                 "message":"invoice not found"
                     }
             return JsonResponse(response,status=404)
-        response=InvoiceSerializer(new_invoice,many=False)
+        response=InvoiceSerializer(invoice,many=False)
         return JsonResponse(response.data,safe=False)
           
 @csrf_exempt
