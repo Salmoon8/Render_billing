@@ -243,7 +243,7 @@ def new_bill(request):
                 return JsonResponse({"message": "payment unsuccessful"}, status=response.status_code, safe=False)
             
         if body["paymentMethod"] == "offline":
-            bill = Bill(invoiceId = invoice, amount=invoice.total, paymentMethod = "OF", dateTime = timezone.now().isoformat())
+            bill = Bill(invoiceId = invoice, paymentMethod = "OF", dateTime = timezone.now().isoformat())
             bill.save()
             response = BillSerializer(bill).data
             return JsonResponse(response, status = 201, safe=False)
