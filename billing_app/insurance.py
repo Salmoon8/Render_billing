@@ -20,4 +20,4 @@ def get_insurance_percentage(patient_id):
          }
           
      return insurace_response
-print(get_insurance_percentage(2))
+print(get_insurance_percentage(5))
