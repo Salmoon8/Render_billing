@@ -245,6 +245,8 @@ def new_bill(request):
         if body["paymentMethod"] == "offline":
             bill = Bill(invoiceId = invoice, paymentMethod = "OF", dateTime = timezone.now().isoformat())
             bill.save()
+            invoice.status="PD"
+            invoice.save()
             response = BillSerializer(bill).data
             return JsonResponse(response, status = 201, safe=False)
 
