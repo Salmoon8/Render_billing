@@ -19,7 +19,7 @@ class Invoice(models.Model):
     servicesNames=ArrayField(models.CharField())
     total=models.FloatField()
     def __str__(self):
-         return self
+         return f'{self.id}'
 
 class Bill(models.Model):
     id = models.BigAutoField(primary_key=True)
