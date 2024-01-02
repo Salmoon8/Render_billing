@@ -166,7 +166,16 @@ def new_invoice(request) :
                 print(insurance_percentage,services_amounts)
                 amounts_after_insurace=[(1-float(insurance_percentage))* amount for amount in services_amounts]
                 print(amounts_after_insurace)
-                new_invoice=Invoice(appointmentId=data['appointmentId'],patientId=patient_id,status="PN",dateTime=timezone.now().isoformat(),servicesIds=data['servicesIds'],servicesNames=services_names,servicesAmounts=services_amounts,amountsAfterInsurance=amounts_after_insurace,total=sum(amounts_after_insurace))
+                print(data['appointmentId'],patient_id,data['servicesIds'],services_amounts,amounts_after_insurace,services_names,sum(amounts_after_insurace))
+                new_invoice=Invoice(    appointmentId=data['appointmentId'],
+                                patientId=patient_id,
+                                status="PN",
+                                dateTime=timezone.now().isoformat(),
+                                servicesIds=data['servicesIds'],
+                                servicesAmounts=services_amounts,
+                                amountsAfterInsurance=amounts_after_insurace,
+                                servicesNames=services_names,
+                                total=sum(amounts_after_insurace))
                 print(new_invoice)
                 new_invoice.save()
                 #response=get_invoice_by_id(new_invoice.id)
