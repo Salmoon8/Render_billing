@@ -54,7 +54,7 @@ def get_patient_from_appointment(appointment_id):
 
          
      if (response.status_code)== 200:
-        if (response is None):
+        if (response.json() is None):
             patient_response= {
                 "status code": "none",
                 "error": "api returned a null patient"
@@ -130,7 +130,7 @@ def handle_invoice(request,id):
                 "message":"invoice not found"
                     }
             return JsonResponse(response,status=404)
-        response=InvoiceSerializer(new_invoice)
+        response=InvoiceSerializer(new_invoice,many=False)
         return JsonResponse(response.data,safe=False)
           
 @csrf_exempt
@@ -179,7 +179,7 @@ def new_invoice(request) :
                 print(new_invoice)
                 new_invoice.save()
                 #response=get_invoice_by_id(new_invoice.id)
-                response=InvoiceSerializer(new_invoice)
+                response=InvoiceSerializer(new_invoice,many=False)
                 print(response)
                 return JsonResponse(response.data,safe=False)
             else:
