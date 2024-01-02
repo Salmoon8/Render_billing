@@ -59,6 +59,7 @@ def create_online_order(amount, currency='USD'):
 
 def pay_with_card(amount, card_number, cvv, expiry, name):
     response = create_online_order(amount=amount)
+    print(response)
     id = response["id"]
     access_token = generate_access_token()
     url = f"{baseURL['sandbox']}/v2/checkout/orders/{id}/capture"

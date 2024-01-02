@@ -216,6 +216,13 @@ def get_all_invoices(request):
      if len(invoices)==0:
          return JsonResponse({"message":" no invoices found"},status=404) 
      return JsonResponse(serializer.data,safe=False)
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_all_invoices_appointment(request,appointment_id):
+     filtered_invoices = Invoice.objects.filter(appointmentId=appointment_id)
+     serializer = InvoiceSerializer(filtered_invoices,many=True) 
+     return JsonResponse(serializer.data,safe=False)
     
 
     
