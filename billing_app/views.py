@@ -94,6 +94,7 @@ def get_insurance_percentage(patient_id):
              "status code": response.status_code,
              "error": response.text   
          }
+     print(insurace_response)
           
      return insurace_response
 
@@ -157,6 +158,7 @@ def new_invoice(request) :
           if(patient_response["status code"]==200 and services_response["status code"]==200 )  :
             patient_id=patient_response["patient_id"]
             insurace_response=get_insurance_percentage(patient_id)
+            print(insurace_response)
             if (insurace_response["status code"]==200 ):
                 services_names=services_response["services_names"]
                 services_amounts=services_response["services_amounts"]
