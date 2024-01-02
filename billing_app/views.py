@@ -235,6 +235,9 @@ def new_bill(request):
             invoice = get_object_or_404(Invoice, id=body["invoiceId"])
         except Http404:
             return JsonResponse({"message":"invoice not found"}, status=404)
+        
+        if invoice.status=="PD":
+            return JsonResponse({"message":"invoice is already paid"}, status=400)
 
         if body["paymentMethod"]=="card":
             paymentSource = body["paymentSource"]["card"]       
